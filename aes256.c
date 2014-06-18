@@ -23,17 +23,17 @@
 #define F(x)	(((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 #define FD(x)	(((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
 
-uint8_t rj_xtime(uint8_t);
-void aes_subBytes(uint8_t *);
-void aes_subBytes_inv(uint8_t *);
-void aes_addRoundKey(uint8_t *, uint8_t *);
-void aes_addRoundKey_cpy(uint8_t *, uint8_t *, uint8_t *);
-void aes_shiftRows(uint8_t *);
-void aes_shiftRows_inv(uint8_t *);
-void aes_mixColumns(uint8_t *);
-void aes_mixColumns_inv(uint8_t *);
-void aes_expandEncKey(uint8_t *, uint8_t *);
-void aes_expandDecKey(uint8_t *, uint8_t *);
+static uint8_t rj_xtime(uint8_t);
+static void aes_subBytes(uint8_t *);
+static void aes_subBytes_inv(uint8_t *);
+static void aes_addRoundKey(uint8_t *, uint8_t *);
+static void aes_addRoundKey_cpy(uint8_t *, uint8_t *, uint8_t *);
+static void aes_shiftRows(uint8_t *);
+static void aes_shiftRows_inv(uint8_t *);
+static void aes_mixColumns(uint8_t *);
+static void aes_mixColumns_inv(uint8_t *);
+static void aes_expandEncKey(uint8_t *, uint8_t *);
+static void aes_expandDecKey(uint8_t *, uint8_t *);
 
 #if 0
 #define BACK_TO_TABLES
