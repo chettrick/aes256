@@ -23,11 +23,6 @@
 #define F(x)	(((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 #define FD(x)	(((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
 
-uint8_t gf_alog(uint8_t);
-uint8_t gf_log(uint8_t);
-uint8_t gf_mulinv(uint8_t);
-uint8_t rj_sbox(uint8_t);
-uint8_t rj_sbox_inv(uint8_t);
 uint8_t rj_xtime(uint8_t);
 void aes_subBytes(uint8_t *);
 void aes_subBytes_inv(uint8_t *);
@@ -119,7 +114,13 @@ const uint8_t sboxinv[256] = {
 #define rj_sbox(x)	sbox[(x)]
 #define rj_sbox_inv(x)	sboxinv[(x)]
 
-#else /* tableless subroutines */
+#else /* BACK_TO_TABLES */
+
+uint8_t gf_alog(uint8_t);
+uint8_t gf_log(uint8_t);
+uint8_t gf_mulinv(uint8_t);
+uint8_t rj_sbox(uint8_t);
+uint8_t rj_sbox_inv(uint8_t);
 
 /* Calculate anti-logarithm gen 3. */
 uint8_t
@@ -200,7 +201,7 @@ rj_sbox_inv(uint8_t x)
 
 	return gf_mulinv(sb);
 }
-#endif
+#endif /* BACK_TO_TABLES */
 
 uint8_t
 rj_xtime(uint8_t x)

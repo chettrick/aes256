@@ -1,6 +1,6 @@
 /*
  * Byte-oriented AES-256 implementation.
- * All lookup tables replaced with 'on the fly' calculations. 
+ * All lookup tables replaced with 'on the fly' calculations.
  *
  * Copyright (c) 2007 Ilya O. Levin, http://www.literatecode.com
  *
