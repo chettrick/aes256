@@ -30,7 +30,7 @@
 }
 
 int
-main(int argc, char *argv[])
+main(void)
 {
 	aes256_context ctx;
 	uint8_t key[32];
