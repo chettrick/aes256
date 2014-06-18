@@ -22,11 +22,11 @@
 
 #include "aes256.h"
 
-#define DUMP(s, i, buf, sz) {
+#define DUMP(s, i, buf, sz) {						\
 	printf(s);							\
 	for (i = 0; i < (sz); i++)					\
 		printf("%02x ", buf[i]);				\
-	printf("\n");
+	printf("\n");							\
 }
 
 int
