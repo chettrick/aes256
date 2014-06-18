@@ -116,14 +116,14 @@ const uint8_t sboxinv[256] = {
 
 #else /* BACK_TO_TABLES */
 
-uint8_t gf_alog(uint8_t);
-uint8_t gf_log(uint8_t);
-uint8_t gf_mulinv(uint8_t);
-uint8_t rj_sbox(uint8_t);
-uint8_t rj_sbox_inv(uint8_t);
+static uint8_t gf_alog(uint8_t);
+static uint8_t gf_log(uint8_t);
+static uint8_t gf_mulinv(uint8_t);
+static uint8_t rj_sbox(uint8_t);
+static uint8_t rj_sbox_inv(uint8_t);
 
 /* Calculate anti-logarithm gen 3. */
-uint8_t
+static uint8_t
 gf_alog(uint8_t x)
 {
 	uint8_t z;
@@ -141,7 +141,7 @@ gf_alog(uint8_t x)
 }
 
 /* Calculate logarithm gen 3. */
-uint8_t
+static uint8_t
 gf_log(uint8_t x)
 {
 	uint8_t z;
@@ -161,13 +161,13 @@ gf_log(uint8_t x)
 }
 
 /* Calculate multiplicative inverse. */
-uint8_t
+static uint8_t
 gf_mulinv(uint8_t x)
 {
 	return ((x) ? gf_alog(255 - gf_log(x)) : 0);
 }
 
-uint8_t
+static uint8_t
 rj_sbox(uint8_t x)
 {
 	uint8_t y, sb;
@@ -187,7 +187,7 @@ rj_sbox(uint8_t x)
 	return (sb ^ 0x63);
 }
 
-uint8_t
+static uint8_t
 rj_sbox_inv(uint8_t x)
 {
 	uint8_t y, sb;
@@ -203,13 +203,13 @@ rj_sbox_inv(uint8_t x)
 }
 #endif /* BACK_TO_TABLES */
 
-uint8_t
+static uint8_t
 rj_xtime(uint8_t x)
 {
 	return ((x & 0x80) ? ((x << 1) ^ 0x1b) : (x << 1));
 }
 
-void
+static void
 aes_subBytes(uint8_t *buf)
 {
 	register uint8_t i = 16;
@@ -218,7 +218,7 @@ aes_subBytes(uint8_t *buf)
 		buf[i] = rj_sbox(buf[i]);
 }
 
-void
+static void
 aes_subBytes_inv(uint8_t *buf)
 {
 	register uint8_t i = 16;
@@ -227,7 +227,7 @@ aes_subBytes_inv(uint8_t *buf)
 		buf[i] = rj_sbox_inv(buf[i]);
 }
 
-void
+static void
 aes_addRoundKey(uint8_t *buf, uint8_t *key)
 {
 	register uint8_t i = 16;
@@ -236,7 +236,7 @@ aes_addRoundKey(uint8_t *buf, uint8_t *key)
 		buf[i] ^= key[i];
 }
 
-void
+static void
 aes_addRoundKey_cpy(uint8_t *buf, uint8_t *key, uint8_t *cpk)
 {
 	register uint8_t i = 16;
@@ -247,7 +247,7 @@ aes_addRoundKey_cpy(uint8_t *buf, uint8_t *key, uint8_t *cpk)
 	}
 }
 
-void
+static void
 aes_shiftRows(uint8_t *buf)
 {
 	register uint8_t i, j;	/* To make it potentially parallelable. */
@@ -273,7 +273,7 @@ aes_shiftRows(uint8_t *buf)
 	buf[6] = j;
 }
 
-void
+static void
 aes_shiftRows_inv(uint8_t *buf)
 {
 	register uint8_t i, j;	/* To make it potentially parallelable. */
@@ -299,7 +299,7 @@ aes_shiftRows_inv(uint8_t *buf)
 	buf[14] = j;
 }
 
-void
+static void
 aes_mixColumns(uint8_t *buf)
 {
 	register uint8_t i;
@@ -319,7 +319,7 @@ aes_mixColumns(uint8_t *buf)
 	}
 }
 
-void
+static void
 aes_mixColumns_inv(uint8_t *buf)
 {
 	register uint8_t i;
@@ -344,7 +344,7 @@ aes_mixColumns_inv(uint8_t *buf)
 	}
 }
 
-void
+static void
 aes_expandEncKey(uint8_t *k, uint8_t *rc)
 {
 	register uint8_t i;
@@ -375,7 +375,7 @@ aes_expandEncKey(uint8_t *k, uint8_t *rc)
 	}
 }
 
-void
+static void
 aes_expandDecKey(uint8_t *k, uint8_t *rc)
 {
 	uint8_t i;
@@ -406,7 +406,8 @@ aes_expandDecKey(uint8_t *k, uint8_t *rc)
 	k[3] ^= rj_sbox(k[28]);
 }
 
-void aes256_init(aes256_context *ctx, uint8_t *k)
+void
+aes256_init(aes256_context *ctx, uint8_t *k)
 {
 	register uint8_t i;
 	uint8_t rcon = 1;
