@@ -367,7 +367,7 @@ aes_expandEncKey(uint8_t *k, uint8_t *rc)
 	k[18] ^= rj_sbox(k[14]);
 	k[19] ^= rj_sbox(k[15]);
 
-	for(i = 20; i < 32; i += 4) {
+	for (i = 20; i < 32; i += 4) {
 		k[i] ^= k[i - 4];
 		k[i + 1] ^= k[i - 3];
 		k[i + 2] ^= k[i - 2];
