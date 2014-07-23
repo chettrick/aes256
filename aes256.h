@@ -18,13 +18,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef uint8_t
-#define uint8_t unsigned char
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef _AES256_H_
+#define _AES256_H_
 
 typedef struct {
 	uint8_t key[32];
@@ -37,6 +32,4 @@ void aes256_done(aes256_context *);
 void aes256_encrypt_ecb(aes256_context *, uint8_t *);
 void aes256_decrypt_ecb(aes256_context *, uint8_t *);
 
-#ifdef __cplusplus
-}
-#endif
+#endif /* _AES256_H_ */

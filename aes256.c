@@ -18,6 +18,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdint.h>
+
 #include "aes256.h"
 
 #define F(x)	(((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
@@ -353,7 +355,7 @@ aes_expandEncKey(uint8_t *k, uint8_t *rc)
 	k[1] ^= rj_sbox(k[30]);
 	k[2] ^= rj_sbox(k[31]);
 	k[3] ^= rj_sbox(k[28]);
-	*rc = F( *rc);
+	*rc = F(*rc);
 
 	for (i = 4; i < 16; i += 4) {
 		k[i] ^= k[i - 4];
