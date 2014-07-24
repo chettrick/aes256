@@ -25,17 +25,23 @@
 #define F(x)	(((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 #define FD(x)	(((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
 
-static uint8_t rj_xtime(uint8_t);
-static void aes_subBytes(uint8_t *);
-static void aes_subBytes_inv(uint8_t *);
-static void aes_addRoundKey(uint8_t *, uint8_t *);
-static void aes_addRoundKey_cpy(uint8_t *, uint8_t *, uint8_t *);
-static void aes_shiftRows(uint8_t *);
-static void aes_shiftRows_inv(uint8_t *);
-static void aes_mixColumns(uint8_t *);
-static void aes_mixColumns_inv(uint8_t *);
-static void aes_expandEncKey(uint8_t *, uint8_t *);
-static void aes_expandDecKey(uint8_t *, uint8_t *);
+void aes256_init(aes256_context * const, uint8_t * const);
+void aes256_done(aes256_context * const);
+void aes256_encrypt_ecb(aes256_context * const, uint8_t * const);
+void aes256_decrypt_ecb(aes256_context * const, uint8_t * const);
+
+static uint8_t rj_xtime(const uint8_t);
+static void aes_subBytes(uint8_t * const);
+static void aes_subBytes_inv(uint8_t * const);
+static void aes_addRoundKey(uint8_t * const, const uint8_t * const);
+static void aes_addRoundKey_cpy(uint8_t * const, const uint8_t * const,
+    uint8_t * const);
+static void aes_shiftRows(uint8_t * const);
+static void aes_shiftRows_inv(uint8_t * const);
+static void aes_mixColumns(uint8_t * const);
+static void aes_mixColumns_inv(uint8_t * const);
+static void aes_expandEncKey(uint8_t * const, uint8_t * const);
+static void aes_expandDecKey(uint8_t * const, uint8_t * const);
 
 #if 0
 #define BACK_TO_TABLES
@@ -119,10 +125,10 @@ const uint8_t sboxinv[256] = {
 #else /* BACK_TO_TABLES */
 
 static uint8_t gf_alog(uint8_t);
-static uint8_t gf_log(uint8_t);
-static uint8_t gf_mulinv(uint8_t);
-static uint8_t rj_sbox(uint8_t);
-static uint8_t rj_sbox_inv(uint8_t);
+static uint8_t gf_log(const uint8_t);
+static uint8_t gf_mulinv(const uint8_t);
+static uint8_t rj_sbox(const uint8_t);
+static uint8_t rj_sbox_inv(const uint8_t);
 
 /* Calculate anti-logarithm gen 3. */
 static uint8_t
@@ -144,7 +150,7 @@ gf_alog(uint8_t x)
 
 /* Calculate logarithm gen 3. */
 static uint8_t
-gf_log(uint8_t x)
+gf_log(const uint8_t x)
 {
 	uint8_t z;
 	uint8_t atb = 1, i = 0;
@@ -164,13 +170,13 @@ gf_log(uint8_t x)
 
 /* Calculate multiplicative inverse. */
 static uint8_t
-gf_mulinv(uint8_t x)
+gf_mulinv(const uint8_t x)
 {
 	return ((x) ? gf_alog(255 - gf_log(x)) : 0);
 }
 
 static uint8_t
-rj_sbox(uint8_t x)
+rj_sbox(const uint8_t x)
 {
 	uint8_t y, sb;
 
@@ -190,7 +196,7 @@ rj_sbox(uint8_t x)
 }
 
 static uint8_t
-rj_sbox_inv(uint8_t x)
+rj_sbox_inv(const uint8_t x)
 {
 	uint8_t y, sb;
 
@@ -206,13 +212,13 @@ rj_sbox_inv(uint8_t x)
 #endif /* BACK_TO_TABLES */
 
 static uint8_t
-rj_xtime(uint8_t x)
+rj_xtime(const uint8_t x)
 {
 	return ((x & 0x80) ? ((x << 1) ^ 0x1b) : (x << 1));
 }
 
 static void
-aes_subBytes(uint8_t *buf)
+aes_subBytes(uint8_t * const buf)
 {
 	register uint8_t i = 16;
 
@@ -221,7 +227,7 @@ aes_subBytes(uint8_t *buf)
 }
 
 static void
-aes_subBytes_inv(uint8_t *buf)
+aes_subBytes_inv(uint8_t * const buf)
 {
 	register uint8_t i = 16;
 
@@ -230,7 +236,7 @@ aes_subBytes_inv(uint8_t *buf)
 }
 
 static void
-aes_addRoundKey(uint8_t *buf, uint8_t *key)
+aes_addRoundKey(uint8_t * const buf, const uint8_t * const key)
 {
 	register uint8_t i = 16;
 
@@ -239,7 +245,8 @@ aes_addRoundKey(uint8_t *buf, uint8_t *key)
 }
 
 static void
-aes_addRoundKey_cpy(uint8_t *buf, uint8_t *key, uint8_t *cpk)
+aes_addRoundKey_cpy(uint8_t * const buf, const uint8_t * const key,
+    uint8_t * const cpk)
 {
 	register uint8_t i = 16;
 
@@ -250,7 +257,7 @@ aes_addRoundKey_cpy(uint8_t *buf, uint8_t *key, uint8_t *cpk)
 }
 
 static void
-aes_shiftRows(uint8_t *buf)
+aes_shiftRows(uint8_t * const buf)
 {
 	register uint8_t i, j;	/* To make it potentially parallelable. */
 
@@ -276,7 +283,7 @@ aes_shiftRows(uint8_t *buf)
 }
 
 static void
-aes_shiftRows_inv(uint8_t *buf)
+aes_shiftRows_inv(uint8_t * const buf)
 {
 	register uint8_t i, j;	/* To make it potentially parallelable. */
 
@@ -302,7 +309,7 @@ aes_shiftRows_inv(uint8_t *buf)
 }
 
 static void
-aes_mixColumns(uint8_t *buf)
+aes_mixColumns(uint8_t * const buf)
 {
 	register uint8_t i;
 	register uint8_t a, b, c, d, e;
@@ -322,7 +329,7 @@ aes_mixColumns(uint8_t *buf)
 }
 
 static void
-aes_mixColumns_inv(uint8_t *buf)
+aes_mixColumns_inv(uint8_t * const buf)
 {
 	register uint8_t i;
 	register uint8_t a, b, c, d, e;
@@ -347,7 +354,7 @@ aes_mixColumns_inv(uint8_t *buf)
 }
 
 static void
-aes_expandEncKey(uint8_t *k, uint8_t *rc)
+aes_expandEncKey(uint8_t * const k, uint8_t * const rc)
 {
 	register uint8_t i;
 
@@ -378,7 +385,7 @@ aes_expandEncKey(uint8_t *k, uint8_t *rc)
 }
 
 static void
-aes_expandDecKey(uint8_t *k, uint8_t *rc)
+aes_expandDecKey(uint8_t * const k, uint8_t * const rc)
 {
 	uint8_t i;
 
@@ -409,7 +416,7 @@ aes_expandDecKey(uint8_t *k, uint8_t *rc)
 }
 
 void
-aes256_init(aes256_context *ctx, uint8_t *k)
+aes256_init(aes256_context * const ctx, uint8_t * const k)
 {
 	register uint8_t i;
 	uint8_t rcon = 1;
@@ -422,7 +429,7 @@ aes256_init(aes256_context *ctx, uint8_t *k)
 }
 
 void
-aes256_done(aes256_context *ctx)
+aes256_done(aes256_context * const ctx)
 {
 	register uint8_t i;
 
@@ -431,7 +438,7 @@ aes256_done(aes256_context *ctx)
 }
 
 void
-aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
+aes256_encrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
 {
 	uint8_t i, rcon;
 
@@ -454,7 +461,7 @@ aes256_encrypt_ecb(aes256_context *ctx, uint8_t *buf)
 }
 
 void
-aes256_decrypt_ecb(aes256_context *ctx, uint8_t *buf)
+aes256_decrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
 {
 	uint8_t i, rcon;
 
