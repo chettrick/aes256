@@ -22,9 +22,6 @@
 
 #include "aes256.h"
 
-#define F(x)	(((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
-#define FD(x)	(((x) >> 1) ^ (((x) & 1) ? 0x8d : 0))
-
 void aes256_init(aes256_context * const, uint8_t * const);
 void aes256_done(aes256_context * const);
 void aes256_encrypt_ecb(aes256_context * const, uint8_t * const);
@@ -182,14 +179,14 @@ rj_sbox(const uint8_t x)
 
 	sb = y = gf_mulinv(x);
 
-	y = (y << 1) | (y >> 7);
+	y = (uint8_t)((y << 1) | (y >> 7));
 	sb ^= y;
-	y = (y << 1) | (y >> 7);
+	y = (uint8_t)((y << 1) | (y >> 7));
 	sb ^= y;
 
-	y = (y << 1) | (y >> 7);
+	y = (uint8_t)((y << 1) | (y >> 7));
 	sb ^= y;
-	y = (y << 1) | (y >> 7);
+	y = (uint8_t)((y << 1) | (y >> 7));
 	sb ^= y;
 
 	return (sb ^ 0x63);
@@ -201,10 +198,10 @@ rj_sbox_inv(const uint8_t x)
 	uint8_t y, sb;
 
 	y = x ^ 0x63;
-	sb = y = (y << 1) | (y >> 7);
-	y = (y << 2) | (y >> 6);
+	sb = y = (uint8_t)((y << 1) | (y >> 7));
+	y = (uint8_t)((y << 2) | (y >> 6));
 	sb ^= y;
-	y = (y << 3) | (y >> 5);
+	y = (uint8_t)((y << 3) | (y >> 5));
 	sb ^= y;
 
 	return gf_mulinv(sb);
@@ -214,7 +211,8 @@ rj_sbox_inv(const uint8_t x)
 static uint8_t
 rj_xtime(const uint8_t x)
 {
-	return ((x & 0x80) ? ((x << 1) ^ 0x1b) : (x << 1));
+	return ((x & 0x80) ?
+	    (uint8_t)((x << 1) ^ 0x1b) : (uint8_t)(x << 1));
 }
 
 static void
@@ -362,7 +360,7 @@ aes_expandEncKey(uint8_t * const k, uint8_t * const rc)
 	k[1] ^= rj_sbox(k[30]);
 	k[2] ^= rj_sbox(k[31]);
 	k[3] ^= rj_sbox(k[28]);
-	*rc = F(*rc);
+	*rc = (uint8_t)((*rc << 1) ^ (((*rc >> 7) & 1) * 0x1b));
 
 	for (i = 4; i < 16; i += 4) {
 		k[i] ^= k[i - 4];
@@ -408,7 +406,7 @@ aes_expandDecKey(uint8_t * const k, uint8_t * const rc)
 		k[i + 3] ^= k[i - 1];
 	}
 
-	*rc = FD(*rc);
+	*rc = (uint8_t)((*rc >> 1) ^ ((*rc & 1) ? 0x8d : 0));
 	k[0] ^= rj_sbox(k[29]) ^ (*rc);
 	k[1] ^= rj_sbox(k[30]);
 	k[2] ^= rj_sbox(k[31]);
