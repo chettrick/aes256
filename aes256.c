@@ -23,9 +23,9 @@
 #include "aes256.h"
 
 void aes256_init(aes256_context * const, uint8_t * const);
-void aes256_done(aes256_context * const);
 void aes256_encrypt_ecb(aes256_context * const, uint8_t * const);
 void aes256_decrypt_ecb(aes256_context * const, uint8_t * const);
+void aes256_done(aes256_context * const);
 
 static uint8_t rj_xtime(const uint8_t);
 static void aes_subBytes(uint8_t * const);
@@ -413,6 +413,9 @@ aes_expandDecKey(uint8_t * const k, uint8_t * const rc)
 	k[3] ^= rj_sbox(k[28]);
 }
 
+/*
+ * Public API Functions
+ */
 void
 aes256_init(aes256_context * const ctx, uint8_t * const k)
 {
@@ -424,15 +427,6 @@ aes256_init(aes256_context * const ctx, uint8_t * const k)
 
 	for (i = 8; --i;)
 		aes_expandEncKey(ctx->deckey, &rcon);
-}
-
-void
-aes256_done(aes256_context * const ctx)
-{
-	register uint8_t i;
-
-	for (i = 0; i < sizeof(ctx->key); i++) 
-		ctx->key[i] = ctx->enckey[i] = ctx->deckey[i] = 0;
 }
 
 void
@@ -478,4 +472,13 @@ aes256_decrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
 		aes_subBytes_inv(buf);
 	}
 	aes_addRoundKey(buf, ctx->key); 
+}
+
+void
+aes256_done(aes256_context * const ctx)
+{
+	register uint8_t i;
+
+	for (i = 0; i < sizeof(ctx->key); i++)
+		ctx->key[i] = ctx->enckey[i] = ctx->deckey[i] = 0;
 }

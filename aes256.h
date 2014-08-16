@@ -28,8 +28,8 @@ typedef struct {
 } aes256_context;
 
 extern void aes256_init(aes256_context * const, uint8_t * const);
-extern void aes256_done(aes256_context * const);
 extern void aes256_encrypt_ecb(aes256_context * const, uint8_t * const);
 extern void aes256_decrypt_ecb(aes256_context * const, uint8_t * const);
+extern void aes256_done(aes256_context * const);
 
 #endif /* _AES256_H_ */
