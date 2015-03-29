@@ -22,23 +22,88 @@
 
 #include "aes256.h"
 
-void aes256_init(aes256_context * const, uint8_t * const);
-void aes256_encrypt_ecb(aes256_context * const, uint8_t * const);
-void aes256_decrypt_ecb(aes256_context * const, uint8_t * const);
-void aes256_done(aes256_context * const);
-
-static uint8_t rj_xtime(const uint8_t);
-static void aes_subBytes(uint8_t * const);
-static void aes_subBytes_inv(uint8_t * const);
-static void aes_addRoundKey(uint8_t * const, const uint8_t * const);
-static void aes_addRoundKey_cpy(uint8_t * const, const uint8_t * const,
+static uint8_t	rj_xtime(const uint8_t);
+static void	aes_subBytes(uint8_t * const);
+static void	aes_subBytes_inv(uint8_t * const);
+static void	aes_addRoundKey(uint8_t * const, const uint8_t * const);
+static void	aes_addRoundKey_cpy(uint8_t * const, const uint8_t * const,
     uint8_t * const);
-static void aes_shiftRows(uint8_t * const);
-static void aes_shiftRows_inv(uint8_t * const);
-static void aes_mixColumns(uint8_t * const);
-static void aes_mixColumns_inv(uint8_t * const);
-static void aes_expandEncKey(uint8_t * const, uint8_t * const);
-static void aes_expandDecKey(uint8_t * const, uint8_t * const);
+static void	aes_shiftRows(uint8_t * const);
+static void	aes_shiftRows_inv(uint8_t * const);
+static void	aes_mixColumns(uint8_t * const);
+static void	aes_mixColumns_inv(uint8_t * const);
+static void	aes_expandEncKey(uint8_t * const, uint8_t * const);
+static void	aes_expandDecKey(uint8_t * const, uint8_t * const);
+
+/*
+ * Public API Functions
+ */
+void
+aes256_init(aes256_context * const ctx, uint8_t * const k)
+{
+	register uint8_t i;
+	uint8_t rcon = 1;
+
+	for (i = 0; i < sizeof(ctx->key); i++)
+		ctx->enckey[i] = ctx->deckey[i] = k[i];
+
+	for (i = 8; --i;)
+		aes_expandEncKey(ctx->deckey, &rcon);
+}
+
+void
+aes256_encrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
+{
+	uint8_t i, rcon;
+
+	aes_addRoundKey_cpy(buf, ctx->enckey, ctx->key);
+	for (i = 1, rcon = 1; i < 14; ++i) {
+		aes_subBytes(buf);
+		aes_shiftRows(buf);
+		aes_mixColumns(buf);
+		if (i & 1)
+			aes_addRoundKey(buf, &ctx->key[16]);
+		else {
+			aes_expandEncKey(ctx->key, &rcon);
+			aes_addRoundKey(buf, ctx->key);
+		}
+	}
+	aes_subBytes(buf);
+	aes_shiftRows(buf);
+	aes_expandEncKey(ctx->key, &rcon);
+	aes_addRoundKey(buf, ctx->key);
+}
+
+void
+aes256_decrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
+{
+	uint8_t i, rcon;
+
+	aes_addRoundKey_cpy(buf, ctx->deckey, ctx->key);
+	aes_shiftRows_inv(buf);
+	aes_subBytes_inv(buf);
+
+	for (i = 14, rcon = 0x80; --i;) {
+		if (i & 1) {
+			aes_expandDecKey(ctx->key, &rcon);
+			aes_addRoundKey(buf, &ctx->key[16]);
+		} else
+			aes_addRoundKey(buf, ctx->key);
+		aes_mixColumns_inv(buf);
+		aes_shiftRows_inv(buf);
+		aes_subBytes_inv(buf);
+	}
+	aes_addRoundKey(buf, ctx->key);
+}
+
+void
+aes256_done(aes256_context * const ctx)
+{
+	register uint8_t i;
+
+	for (i = 0; i < sizeof(ctx->key); i++)
+		ctx->key[i] = ctx->enckey[i] = ctx->deckey[i] = 0;
+}
 
 #if 0
 #define BACK_TO_TABLES
@@ -121,11 +186,11 @@ static const uint8_t sboxinv[256] = {
 
 #else /* BACK_TO_TABLES */
 
-static uint8_t gf_alog(uint8_t);
-static uint8_t gf_log(const uint8_t);
-static uint8_t gf_mulinv(const uint8_t);
-static uint8_t rj_sbox(const uint8_t);
-static uint8_t rj_sbox_inv(const uint8_t);
+static uint8_t	gf_alog(uint8_t);
+static uint8_t	gf_log(const uint8_t);
+static uint8_t	gf_mulinv(const uint8_t);
+static uint8_t	rj_sbox(const uint8_t);
+static uint8_t	rj_sbox_inv(const uint8_t);
 
 /* Calculate anti-logarithm gen 3. */
 static uint8_t
@@ -389,7 +454,7 @@ aes_expandDecKey(uint8_t * const k, uint8_t * const rc)
 
 	for (i = 28; i > 16; i -= 4) {
 		k[i + 0] ^= k[i - 4];
-		k[i + 1] ^= k[i - 3]; 
+		k[i + 1] ^= k[i - 3];
 		k[i + 2] ^= k[i - 2];
 		k[i + 3] ^= k[i - 1];
 	}
@@ -411,74 +476,4 @@ aes_expandDecKey(uint8_t * const k, uint8_t * const rc)
 	k[1] ^= rj_sbox(k[30]);
 	k[2] ^= rj_sbox(k[31]);
 	k[3] ^= rj_sbox(k[28]);
-}
-
-/*
- * Public API Functions
- */
-void
-aes256_init(aes256_context * const ctx, uint8_t * const k)
-{
-	register uint8_t i;
-	uint8_t rcon = 1;
-
-	for (i = 0; i < sizeof(ctx->key); i++)
-		ctx->enckey[i] = ctx->deckey[i] = k[i];
-
-	for (i = 8; --i;)
-		aes_expandEncKey(ctx->deckey, &rcon);
-}
-
-void
-aes256_encrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
-{
-	uint8_t i, rcon;
-
-	aes_addRoundKey_cpy(buf, ctx->enckey, ctx->key);
-	for (i = 1, rcon = 1; i < 14; ++i) {
-		aes_subBytes(buf);
-		aes_shiftRows(buf);
-		aes_mixColumns(buf);
-		if (i & 1)
-			aes_addRoundKey(buf, &ctx->key[16]);
-		else {
-			aes_expandEncKey(ctx->key, &rcon);
-			aes_addRoundKey(buf, ctx->key);
-		}
-	}
-	aes_subBytes(buf);
-	aes_shiftRows(buf);
-	aes_expandEncKey(ctx->key, &rcon); 
-	aes_addRoundKey(buf, ctx->key);
-}
-
-void
-aes256_decrypt_ecb(aes256_context * const ctx, uint8_t * const buf)
-{
-	uint8_t i, rcon;
-
-	aes_addRoundKey_cpy(buf, ctx->deckey, ctx->key);
-	aes_shiftRows_inv(buf);
-	aes_subBytes_inv(buf);
-
-	for (i = 14, rcon = 0x80; --i;) {
-		if (i & 1) {
-			aes_expandDecKey(ctx->key, &rcon);
-			aes_addRoundKey(buf, &ctx->key[16]);
-		} else
-			aes_addRoundKey(buf, ctx->key);
-		aes_mixColumns_inv(buf);
-		aes_shiftRows_inv(buf);
-		aes_subBytes_inv(buf);
-	}
-	aes_addRoundKey(buf, ctx->key); 
-}
-
-void
-aes256_done(aes256_context * const ctx)
-{
-	register uint8_t i;
-
-	for (i = 0; i < sizeof(ctx->key); i++)
-		ctx->key[i] = ctx->enckey[i] = ctx->deckey[i] = 0;
 }
