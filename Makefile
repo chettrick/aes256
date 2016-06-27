@@ -1,5 +1,6 @@
-PROG=	demo
-SRCS=	aes256.c demo.c
+PROG=		aes256-demo
+SRCS=		aes256.c
+SRCS+=		demo.c
 NOMAN=
 
 CLFAGS+=	-g
@@ -11,4 +12,10 @@ CFLAGS+=	-Wfloat-equal -Wcast-align -Wundef -Wstrict-aliasing=2
 
 #CFLAGS+=	-DBACK_TO_TABLES
 
-.include <bsd.prog.mk>
+all: ${PROG}
+
+${PROG}: ${SRCS}
+	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${SRCS}
+
+clean:
+	rm -f a.out [Ee]rrs mklog *.core y.tab.h ${PROG} {PROG}.o
