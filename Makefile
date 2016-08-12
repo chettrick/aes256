@@ -18,4 +18,4 @@ ${PROG}: ${SRCS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ ${SRCS}
 
 clean:
-	rm -f a.out [Ee]rrs mklog *.core y.tab.h ${PROG} {PROG}.o
+	rm -f a.out [Ee]rrs mklog *.core y.tab.h ${PROG} ${PROG}.o
